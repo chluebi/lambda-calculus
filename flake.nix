@@ -74,6 +74,12 @@
               ocamlPackages.core
               ocamlPackages.core_unix
             ];
+
+            propagatedBuildInputs = [
+              ocamlPackages.core
+              ocamlPackages.core_unix
+            ];
+
             duneVersion = "3";
             src = sources.ocaml;
 
@@ -173,7 +179,7 @@
               ocamlPackages.ocaml
               ocamlPackages.core_unix
               ocamlPackages.core
-              
+
               # Source file formatting
               legacyPackages.nixpkgs-fmt
               legacyPackages.ocamlformat
@@ -190,7 +196,7 @@
               ocamlPackages.menhir
 
               ocamlPackages.dune_3
-              
+
               legacyPackages.ocamlformat
             ];
 

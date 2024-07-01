@@ -1,5 +1,5 @@
 %{
-open Lambda.LambdaCalculus
+open Lambda.V
 %}
 
 %token <string> ID
@@ -17,7 +17,7 @@ main:
 ;
 
 expr:
-  | ID                       { Var $1 }
-  | LPAREN; LAMBDA; id = ID; ARROW; body = expr; RPAREN    { Lamb (id, body) }
-  | f = expr APP arg = expr            { App (f, arg) }
+  | ID                       { VarV $1 }
+  | LPAREN; LAMBDA; id = ID; ARROW; body = expr; RPAREN    { LambV (id, body) }
+  | f = expr APP arg = expr            { AppV (f, arg) }
 ;
