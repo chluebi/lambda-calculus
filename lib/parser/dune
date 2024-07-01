@@ -1,0 +1,9 @@
+(library
+ (name parser)
+ (package lambda)
+ (libraries lambda))
+
+(menhir
+ (modules grammar))
+
+(ocamllex lexer)

@@ -68,6 +68,12 @@
           lambda = ocamlPackages.buildDunePackage {
             pname = "lambda";
             version = "0.1.0";
+            nativeBuildInputs = [
+              ocamlPackages.merlin
+              ocamlPackages.menhir
+              ocamlPackages.core
+              ocamlPackages.core_unix
+            ];
             duneVersion = "3";
             src = sources.ocaml;
 
@@ -164,6 +170,10 @@
           default = legacyPackages.mkShell {
             # Development tools
             packages = [
+              ocamlPackages.ocaml
+              ocamlPackages.core_unix
+              ocamlPackages.core
+              
               # Source file formatting
               legacyPackages.nixpkgs-fmt
               legacyPackages.ocamlformat
@@ -177,9 +187,10 @@
               ocamlPackages.utop
 
               ocamlPackages.merlin
+              ocamlPackages.menhir
 
               ocamlPackages.dune_3
-              ocamlPackages.ocaml
+              
               legacyPackages.ocamlformat
             ];
 

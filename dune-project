@@ -1,4 +1,5 @@
 (lang dune 3.4)
+(using menhir 2.0)
 (name lambda)
 
 ; https://dune.readthedocs.io/en/stable/opam.html#generating-opam-files

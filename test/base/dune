@@ -6,4 +6,4 @@
 (tests
  (names structure)
  (package lambda)
- (libraries base))
+ (libraries lambda))

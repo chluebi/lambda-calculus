@@ -7,4 +7,4 @@
  (name main)
  (public_name lambda)
  (package lambda)
- (libraries base))
+ (libraries core core_unix.command_unix lambda parser))

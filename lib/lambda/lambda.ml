@@ -27,46 +27,40 @@ module LambdaCalculus = struct
 
   let rec eval_step_eager (tree : t) : t * bool =
     match tree with
-      | Lamb _ -> tree, false
-      | App (f, a) -> (
-          match eval_step_eager f with
-            | (f, false) -> (
-              match eval_step_eager a with
-                | (a, false) -> (
-                  match f with
-                    | Lamb (v, b) -> sub v a b, true
-                    | _ ->  raise (Failure "Only lambdas can take arguments")
-                )
-                | (a, true) -> App (f, a), true
-              )
-            | (f, true) -> App (f, a), true
-      )
-      | Var _ -> tree, false
+    | Lamb _ -> (tree, false)
+    | App (f, a) -> (
+        match eval_step_eager f with
+        | f, false -> (
+            match eval_step_eager a with
+            | a, false -> (
+                match f with
+                | Lamb (v, b) -> (sub v a b, true)
+                | _ -> raise (Failure "Only lambdas can take arguments"))
+            | a, true -> (App (f, a), true))
+        | f, true -> (App (f, a), true))
+    | Var _ -> (tree, false)
 
-  let rec eval_eager (tree: t) : t =
+  let rec eval_eager (tree : t) : t =
     match eval_step_eager tree with
-      | (tree', true) -> eval_eager tree'
-      | (tree', false) -> tree'
-
+    | tree', true -> eval_eager tree'
+    | tree', false -> tree'
 
   let rec eval_step_lazy (tree : t) : t * bool =
     match tree with
-      | Lamb _ -> tree, false
-      | App (f, a) -> (
-          match eval_step_lazy f with
-            | (f, false) -> (
-              match f with
-                | Lamb (v, b) -> sub v a b, true
-                | _ ->  raise (Failure "Only lambdas can take arguments")
-              )
-            | (f, true) -> App (f, a), true
-      )
-      | Var _ -> tree, false
+    | Lamb _ -> (tree, false)
+    | App (f, a) -> (
+        match eval_step_lazy f with
+        | f, false -> (
+            match f with
+            | Lamb (v, b) -> (sub v a b, true)
+            | _ -> raise (Failure "Only lambdas can take arguments"))
+        | f, true -> (App (f, a), true))
+    | Var _ -> (tree, false)
 
-  let rec eval_lazy (tree: t) : t =
+  let rec eval_lazy (tree : t) : t =
     match eval_step_lazy tree with
-      | (tree', true) -> eval_lazy tree'
-      | (tree', false) -> tree'
+    | tree', true -> eval_lazy tree'
+    | tree', false -> tree'
 end
 
 module Examples = struct
