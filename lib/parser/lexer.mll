@@ -3,20 +3,24 @@ open Grammar
 }
 
 rule read = parse
-| ['\t']
+| ['\t' '\n' ' ']
     { read lexbuf }
-| '\n'
-    { EOL }
+| eof
+    { EOF }
 | '('
     { LPAREN }
 | '\\'
     { LAMBDA }
-| " -> "
+| "->"
     { ARROW }
 | ')'
     { RPAREN }
-| ' '
-    { APP }
+| "let"
+    { LET }
+| "="
+    { EQ }
+| "in"
+    { IN }
 | ['a'-'z']+ as x
     { ID x }
 | _

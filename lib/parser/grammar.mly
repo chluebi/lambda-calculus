@@ -4,7 +4,8 @@ open Lambda.V
 
 %token <string> ID
 %token LPAREN LAMBDA ARROW RPAREN APP
-%token EOL
+%token LET EQ IN
+%token EOF
 %left APP               (* lowest precedence *)
 %start main             (* the entry point *)
 %type <t> main
@@ -13,11 +14,13 @@ open Lambda.V
 %%
 
 main:
-  e = expr; EOL                  { e }
+  e = expr; EOF                  { e }
 ;
 
 expr:
-  | ID                       { VarV $1 }
+  | LPAREN; e = expr; RPAREN { e }
+  | id = ID                       { VarV id }
   | LPAREN; LAMBDA; id = ID; ARROW; body = expr; RPAREN    { LambV (id, body) }
-  | f = expr APP arg = expr            { AppV (f, arg) }
+  | f = expr; arg = expr            { AppV (f, arg) }
+  | LET; id = ID; EQ; e = expr; IN; body = expr { AppV (LambV (id, body), e) }
 ;
