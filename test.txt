@@ -1,1 +1,7 @@
-(\a -> a)
+let zero = (\f -> (\x -> x))
+in
+let one = (\f -> (\x -> f x))
+in
+let add = (\m -> (\n -> (\f -> (\x -> m f (n f x)))))
+in
+add zero one
