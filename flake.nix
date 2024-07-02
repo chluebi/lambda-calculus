@@ -128,7 +128,7 @@
                 buildPhase = patchDuneCommand oldAttrs.buildPhase;
                 checkPhase = patchDuneCommand oldAttrs.checkPhase;
                 # skip installation
-                installPhase = "touch $out";
+                installPhase = "echo \"no install\"";
               });
 
           # Check Dune and OCaml formatting
