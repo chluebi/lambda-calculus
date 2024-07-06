@@ -1,14 +1,20 @@
 open Core
 open Lambda
+open Frontend
 open Parser
 
 let parse_with_error lexbuf = Grammar.main Lexer.read lexbuf
 
 let parse_and_print lexbuf =
   let value = parse_with_error lexbuf in
+  print_endline (Frontend.to_string value);
+  let v = Frontend.to_v value in
+  print_endline (V.to_string v);
+  let debruijn = V.to_debruijn v in
+  print_endline (L.to_string debruijn);
   print_string
     (V.to_string
-       (V.of_debruijn (FullReduction.full_reduction (V.to_debruijn value))))
+       (V.of_debruijn (FullReduction.full_reduction (debruijn))))
 
 let read_files filenames =
   List.map filenames ~f:In_channel.read_all |> String.concat
