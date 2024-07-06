@@ -70,6 +70,7 @@ module L = struct
     | Var _ -> (tree, false)
 
   let rec eval_eager (tree : t) : t =
+    print_endline ("eval_eager with " ^ (to_string tree));
     match eval_step_eager tree with
     | tree', true -> eval_eager tree'
     | tree', false -> tree'
