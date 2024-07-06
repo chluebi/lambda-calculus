@@ -1,12 +1,17 @@
 %{
-open Lambda.V
+open Frontend.Frontend
 %}
 
 %token <string> ID
-%token LPAREN LAMBDA ARROW RPAREN
+%token <int> INT
+%token LPAREN RPAREN
+%token LAMBDA ARROW
 %token LET EQ IN
+%token IF THEN ELSE
+%token PLUS MINUS STAR EXP
+%token AND OR NOT
 %token EOF
-%start main             (* the entry point *)
+%start main
 %type <t> main
 %type <t> expr
 
@@ -17,24 +22,49 @@ main:
 ;
 
 expr:
-  | LPAREN; e = expr; RPAREN { e }
-  | id = ID                       { VarV id }
-  | LPAREN; LAMBDA; id = ID; ARROW; body = expr; RPAREN    { LambV (id, body) }
-  | LET; id = ID; EQ; e = expr; IN; body = expr { AppV (LambV (id, body), e) }
-  | a = application { a }
+  | IF; cond = expr; THEN; if_b = expr; ELSE; else_b = expr { IfThenElse (cond, if_b, else_b) }
+  | LET; id = ID; EQ; e = expr; IN; body = expr { LetinF (id, e, body) }
+  | e = lambda_expr { e }
+  | e = app_expr { e }
+  | e = primary_expr { e }
 ;
 
-application:
-  e = primary_expr; rest = application_rest { List.fold_left (fun f arg -> AppV (f, arg)) e rest }
+lambda_expr:
+  | LPAREN; LAMBDA; ids = id_list; ARROW; body = expr; RPAREN { LambF (ids, body) }
 ;
 
-application_rest:
-  | arg = primary_expr; rest = application_rest { arg :: rest }
+id_list:
+  | id = ID; rest = id_list { id :: rest }
+  | id = ID { [id] }
+;
+
+app_expr:
+  e = primary_expr; rest = app_rest { AppF(e, rest) }
+;
+
+app_rest:
+  | arg = primary_expr; rest = app_rest { arg :: rest }
   | { [] }
 ;
 
 primary_expr:
   | LPAREN; e = expr; RPAREN { e }
-  | id = ID                       { VarV id }
-  | LPAREN; LAMBDA; id = ID; ARROW; body = expr; RPAREN    { LambV (id, body) }
+  | id = ID { VarF id }
+  | n = INT { NumF n }
+  | u = unop; e = primary_expr { UnopF (u, e) }
+  | e1 = primary_expr; b = binop; e2 = primary_expr { BinopF (b, e1, e2) }
+;
+
+binop:
+  | PLUS { IntOpPlus }
+  | MINUS { IntOpMinus }
+  | STAR { IntOpMult }
+  | EXP { IntOpExp }
+  | AND { BoolOpAnd }
+  | OR { BoolOpOr }
+;
+
+unop:
+  | MINUS { IntOpNeg }
+  | NOT { BoolOpNot }
 ;
