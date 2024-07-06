@@ -273,12 +273,12 @@ module FullReduction = struct
     and readback (tree : v) : b =
       print_endline ("readback of " ^ v_to_string tree);
       match tree with
-      | LambV b -> (print_endline ("min debruijn " ^ (Int.to_string (min_debruijn b ))));
+      | LambV b ->
+          print_endline ("min debruijn " ^ Int.to_string (min_debruijn b));
           let new_body = change_freeapp_indicies (-1) b in
-          let normed = (norm (AppB (LambB new_body, FreeAppB (-1, [])))) in
-          print_endline ("normed " ^ (b_to_string normed));
-          LambB
-            (change_indicies 1 normed)
+          let normed = norm (AppB (LambB new_body, FreeAppB (-1, []))) in
+          print_endline ("normed " ^ b_to_string normed);
+          LambB (change_indicies 1 normed)
       | FreeAppV (i, l) ->
           let rec helper (l : v list) (carry : b) : b =
             match l with
