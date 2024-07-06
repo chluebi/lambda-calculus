@@ -1,0 +1,4 @@
+(library
+ (name frontend)
+ (package lambda)
+ (libraries lambda))

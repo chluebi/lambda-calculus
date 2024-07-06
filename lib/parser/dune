@@ -1,7 +1,7 @@
 (library
  (name parser)
  (package lambda)
- (libraries lambda))
+ (libraries frontend))
 
 (menhir
  (modules grammar))
