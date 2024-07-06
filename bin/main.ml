@@ -1,5 +1,4 @@
 open Core
-open Lexing
 open Lambda
 open Parser
 
@@ -11,15 +10,16 @@ let parse_and_print lexbuf =
     (V.to_string
        (V.of_debruijn (FullReduction.full_reduction (V.to_debruijn value))))
 
-let loop filename () =
-  let inx = In_channel.create filename in
-  let lexbuf = Lexing.from_channel inx in
-  lexbuf.lex_curr_p <- { lexbuf.lex_curr_p with pos_fname = filename };
-  parse_and_print lexbuf;
-  In_channel.close inx
+let read_files filenames =
+  List.map filenames ~f:In_channel.read_all |> String.concat
+
+let loop filenames () =
+  let content = read_files filenames in
+  let lexbuf = Lexing.from_string content in
+  parse_and_print lexbuf
 
 let () =
   Command.basic_spec ~summary:"Parse and display Lambda calculus"
-    Command.Spec.(empty +> anon ("filename" %: string))
+    Command.Spec.(empty +> anon (sequence ("filename" %: string)))
     loop
   |> Command_unix.run
