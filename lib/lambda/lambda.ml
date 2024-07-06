@@ -203,6 +203,14 @@ module FullReduction = struct
       (fun _ (i, l) -> FreeAppB (i, l))
       tree
 
+  let change_freeapp_indicies (by : int) (tree : b) : b =
+    b_fold_with_context
+      (fun _ b -> LambB b)
+      (fun _ (f, a) -> AppB (f, a))
+      (fun _ i -> VarB i)
+      (fun _ (i, l) -> FreeAppB (i + by, l))
+      tree
+
   let sub (sub_index : int) (sub_expr : b) (tree : b) : b =
     b_fold_with_context
       (fun _ b -> LambB b)
@@ -247,7 +255,7 @@ module FullReduction = struct
   let rec min_debruijn (tree : b) : int =
     Int.min
       (b_fold_with_context
-         (fun _ b -> b)
+         (fun ctxt b -> Int.min ctxt b)
          (fun _ (f, a) -> Int.min f a)
          (fun _ v -> v)
          (fun _ (i, l) ->
@@ -265,10 +273,12 @@ module FullReduction = struct
     and readback (tree : v) : b =
       print_endline ("readback of " ^ v_to_string tree);
       match tree with
-      | LambV b ->
+      | LambV b -> (print_endline ("min debruijn " ^ (Int.to_string (min_debruijn b ))));
+          let new_body = change_freeapp_indicies (-1) b in
+          let normed = (norm (AppB (LambB new_body, FreeAppB (-1, [])))) in
+          print_endline ("normed " ^ (b_to_string normed));
           LambB
-            (change_indicies 1
-               (norm (AppB (LambB b, FreeAppB (min_debruijn b - 1, [])))))
+            (change_indicies 1 normed)
       | FreeAppV (i, l) ->
           let rec helper (l : v list) (carry : b) : b =
             match l with
