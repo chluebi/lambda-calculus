@@ -53,6 +53,7 @@ primary_expr:
   | n = INT { NumF n }
   | u = unop; e = primary_expr { UnopF (u, e) }
   | e1 = primary_expr; b = binop; e2 = primary_expr { BinopF (b, e1, e2) }
+  | e = lambda_expr { e }
 ;
 
 binop:

@@ -1,2 +1,1 @@
-exp (add (add one one) one) zero
-
+2 * 3 + 5

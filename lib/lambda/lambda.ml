@@ -247,7 +247,7 @@ module FullReduction = struct
     | FreeAppB _ -> (tree, false)
 
   let rec eval_eager (tree : b) : b =
-    print_endline ("eval_eager with " ^ b_to_string tree);
+    (* print_endline ("eval_eager with " ^ b_to_string tree); *)
     match eval_step_eager tree with
     | tree', true -> eval_eager tree'
     | tree', false -> tree'
@@ -268,16 +268,16 @@ module FullReduction = struct
     let eval (tree : b) : v = b_to_v (eval_eager tree) in
     let rec norm (tree : b) : b =
       let x = readback (eval tree) in
-      print_endline ("readback finished with " ^ b_to_string x);
+      (* print_endline ("readback finished with " ^ b_to_string x); *)
       x
     and readback (tree : v) : b =
-      print_endline ("readback of " ^ v_to_string tree);
+      (* print_endline ("readback of " ^ v_to_string tree); *)
       match tree with
       | LambV b ->
-          print_endline ("min debruijn " ^ Int.to_string (min_debruijn b));
+          (* print_endline ("min debruijn " ^ Int.to_string (min_debruijn b)); *)
           let new_body = change_freeapp_indicies (-1) b in
           let normed = norm (AppB (LambB new_body, FreeAppB (-1, []))) in
-          print_endline ("normed " ^ b_to_string normed);
+          (* print_endline ("normed " ^ b_to_string normed); *)
           LambB (change_indicies 1 normed)
       | FreeAppV (i, l) ->
           let rec helper (l : v list) (carry : b) : b =
