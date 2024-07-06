@@ -17,7 +17,7 @@ let parse_and_print lexbuf =
        (V.of_debruijn (FullReduction.full_reduction (debruijn))))
 
 let read_files filenames =
-  List.map filenames ~f:In_channel.read_all |> String.concat
+  List.map filenames ~f:In_channel.read_all |> String.concat ~sep:" "
 
 let loop filenames () =
   let content = read_files filenames in
