@@ -8,7 +8,8 @@ let parse_with_error lexbuf = Grammar.main Lexer.read lexbuf
 let parse_and_print lexbuf =
   let value = parse_with_error lexbuf in
   print_string
-    (V.to_string (V.of_debruijn (FullReduction.full_reduction (V.to_debruijn value))))
+    (V.to_string
+       (V.of_debruijn (FullReduction.full_reduction (V.to_debruijn value))))
 
 let loop filename () =
   let inx = In_channel.create filename in
