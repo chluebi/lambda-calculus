@@ -279,10 +279,3 @@ module FullReduction = struct
     in
     b_to_pure (norm (pure_to_b tree))
 end
-
-module Examples = struct
-  open V
-
-  let example1 : t = LambV ("x", VarV "x")
-  let example2 : t = AppV (LambV ("x", VarV "x"), LambV ("x", VarV "x"))
-end
