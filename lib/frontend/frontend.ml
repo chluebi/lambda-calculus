@@ -5,6 +5,7 @@ module Frontend = struct
     | IntOpPlus
     | IntOpMinus
     | IntOpMult
+    | IntOpDiv
     | IntOpExp
     | BoolOpAnd
     | BoolOpOr
@@ -14,6 +15,7 @@ module Frontend = struct
     | IntOpPlus -> "+"
     | IntOpMinus -> "-"
     | IntOpMult -> "*"
+    | IntOpDiv -> "/"
     | IntOpExp -> " ^ "
     | BoolOpAnd -> "&"
     | BoolOpOr -> "|"
@@ -23,6 +25,7 @@ module Frontend = struct
     | IntOpPlus -> "add"
     | IntOpMinus -> "sub"
     | IntOpMult -> "mul"
+    | IntOpDiv -> "div"
     | IntOpExp -> "exp"
     | BoolOpAnd -> "and"
     | BoolOpOr -> "or"

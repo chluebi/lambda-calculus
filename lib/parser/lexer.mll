@@ -33,6 +33,8 @@ rule read = parse
     { MINUS }
 | '*'
     { STAR }
+| '/'
+    { DIV }
 | '^'
     { EXP }
 | '&'

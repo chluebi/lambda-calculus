@@ -8,7 +8,14 @@ open Frontend.Frontend
 %token LAMBDA ARROW
 %token LET EQ IN
 %token IF THEN ELSE
-%token PLUS MINUS STAR EXP
+
+%token PLUS MINUS STAR DIV EXP
+
+%left PLUS
+%left STAR DIV
+%left EXP
+%nonassoc MINUS
+
 %token AND OR NOT
 %token EOF
 %start main
@@ -60,6 +67,7 @@ binop:
   | PLUS { IntOpPlus }
   | MINUS { IntOpMinus }
   | STAR { IntOpMult }
+  | DIV { IntOpDiv }
   | EXP { IntOpExp }
   | AND { BoolOpAnd }
   | OR { BoolOpOr }
