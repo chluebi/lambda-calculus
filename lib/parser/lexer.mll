@@ -27,6 +27,12 @@ rule read = parse
     { THEN }
 | "else"
     { ELSE }
+| "["
+    { LBRACK }
+| "]"
+    { RBRACK }
+| ";"
+    { SEMICOLON }
 | '+'
     { PLUS }
 | '-'

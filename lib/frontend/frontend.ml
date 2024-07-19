@@ -62,6 +62,7 @@ module Frontend = struct
     | NumF of int
     | BinopF of binop * t * t
     | UnopF of unop * t
+    | ListF of t list
 
   let rec to_string (tree : t) : string =
     match tree with
@@ -83,6 +84,8 @@ module Frontend = struct
         "(" ^ to_string op1 ^ " " ^ binop_to_string binop ^ " " ^ to_string op2
         ^ ")"
     | UnopF (unop, op) -> "(" ^ unop_to_string unop ^ to_string op ^ ")"
+    | ListF xs ->
+        List.fold_left (fun acc e -> acc ^ "; " ^ to_string e) "[" xs ^ "]"
 
   let int_to_v (i : int) : V.t =
     let rec helper i =
@@ -106,4 +109,8 @@ module Frontend = struct
     | BinopF (binop, op1, op2) ->
         V.AppV (V.AppV (V.VarV (binop_to_identifier binop), to_v op1), to_v op2)
     | UnopF (unop, op) -> V.AppV (V.VarV (unop_to_identifier unop), to_v op)
+    | ListF xs ->
+        List.fold_right
+          (fun e acc -> V.AppV (V.AppV (V.VarV "cons", to_v e), acc))
+          xs (V.VarV "nil")
 end

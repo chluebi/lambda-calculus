@@ -9,6 +9,8 @@ open Frontend.Frontend
 %token LET IN
 %token IF THEN ELSE
 
+%token LBRACK RBRACK SEMICOLON
+
 %token LEQ GEQ LT GT EQ
 %nonassoc EQ
 
@@ -60,12 +62,23 @@ app_rest:
   | { [] }
 ;
 
+list_expr:
+  | LBRACK; els = elements_list; RBRACK { ListF els }
+  | LBRACK; RBRACK {ListF [] }
+;
+
+elements_list:
+  | e = primary_expr; SEMICOLON; rest = elements_list { e :: rest }
+  | e = primary_expr; { [e] }
+
+
 primary_expr:
   | LPAREN; e = expr; RPAREN { e }
   | id = ID { VarF id }
   | n = INT { NumF n }
   | u = unop; e = primary_expr { UnopF (u, e) }
   | e1 = primary_expr; b = binop; e2 = primary_expr { BinopF (b, e1, e2) }
+  | l = list_expr { l }
   | e = lambda_expr { e }
 ;
 
