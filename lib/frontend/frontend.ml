@@ -63,6 +63,7 @@ module Frontend = struct
     | BinopF of binop * t * t
     | UnopF of unop * t
     | ListF of t list
+    | TypeF of (string * (string * string list) list) * t
 
   let rec to_string (tree : t) : string =
     match tree with
@@ -86,6 +87,15 @@ module Frontend = struct
     | UnopF (unop, op) -> "(" ^ unop_to_string unop ^ to_string op ^ ")"
     | ListF xs ->
         List.fold_left (fun acc e -> acc ^ "; " ^ to_string e) "[" xs ^ "]"
+    | TypeF ((name, constructors), body) ->
+        let print_constructor (name, args) =
+          List.fold_left (fun acc e -> acc ^ e ^ " ") ("| " ^ name) args
+        in
+        List.fold_left
+          (fun acc e -> acc ^ print_constructor e)
+          ("type " ^ name ^ " = ")
+          constructors
+        ^ to_string body
 
   let int_to_v (i : int) : V.t =
     let rec helper i =
@@ -93,24 +103,60 @@ module Frontend = struct
     in
     V.LambV ("f", V.LambV ("x", helper i))
 
-  let rec to_v (tree : t) : V.t =
+  type type_context = (string * string list) list
+  type context = (string * type_context) list
+
+  let rec to_v (ctxt : context) (tree : t) : V.t =
     match tree with
     | LambF (args, body) ->
-        List.fold_right (fun e acc -> V.LambV (e, acc)) args (to_v body)
+        List.fold_right (fun e acc -> V.LambV (e, acc)) args (to_v ctxt body)
     | AppF (f, args) ->
-        List.fold_left (fun acc e -> V.AppV (acc, to_v e)) (to_v f) args
+        List.fold_left
+          (fun acc e -> V.AppV (acc, to_v ctxt e))
+          (to_v ctxt f) args
     | VarF id -> V.VarV id
-    | LetinF (id, e, body) -> V.AppV (V.LambV (id, to_v body), to_v e)
+    | LetinF (id, e, body) -> V.AppV (V.LambV (id, to_v ctxt body), to_v ctxt e)
     | IfThenElse (cond, if_b, else_b) ->
         V.AppV
-          ( V.AppV (V.AppV (V.VarV "ifthenelse", to_v cond), to_v if_b),
-            to_v else_b )
+          ( V.AppV (V.AppV (V.VarV "ifthenelse", to_v ctxt cond), to_v ctxt if_b),
+            to_v ctxt else_b )
     | NumF n -> int_to_v n
     | BinopF (binop, op1, op2) ->
-        V.AppV (V.AppV (V.VarV (binop_to_identifier binop), to_v op1), to_v op2)
-    | UnopF (unop, op) -> V.AppV (V.VarV (unop_to_identifier unop), to_v op)
+        V.AppV
+          ( V.AppV (V.VarV (binop_to_identifier binop), to_v ctxt op1),
+            to_v ctxt op2 )
+    | UnopF (unop, op) -> V.AppV (V.VarV (unop_to_identifier unop), to_v ctxt op)
     | ListF xs ->
         List.fold_right
-          (fun e acc -> V.AppV (V.AppV (V.VarV "cons", to_v e), acc))
+          (fun e acc -> V.AppV (V.AppV (V.VarV "cons", to_v ctxt e), acc))
           xs (V.VarV "nil")
+    | TypeF ((name, constructors), body) ->
+        let type_index = List.length ctxt in
+        let rec constructors_to_v (constructors : (string * string list) list)
+            (type_ctxt : type_context) : V.t =
+          match constructors with
+          | [] ->
+              let new_ctxt = List.append ctxt [ (name, type_ctxt) ] in
+              to_v new_ctxt body
+          | constructor :: cs ->
+              let constructor_index = List.length type_ctxt in
+              let name, args = constructor in
+              let new_type_ctxt = List.append type_ctxt [ (name, args) ] in
+              let next_v = constructors_to_v cs new_type_ctxt in
+              let constructor_f =
+                to_v ctxt
+                  (LambF
+                     ( args,
+                       ListF
+                         [
+                           NumF type_index;
+                           NumF constructor_index;
+                           ListF (List.map (fun x -> VarF x) args);
+                         ] ))
+              in
+              V.AppV (V.LambV (name, next_v), constructor_f)
+        in
+        constructors_to_v constructors []
+
+  let to_v = to_v []
 end

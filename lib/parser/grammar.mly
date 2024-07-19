@@ -6,7 +6,7 @@ open Frontend.Frontend
 %token <int> INT
 %token LPAREN RPAREN
 %token LAMBDA ARROW
-%token LET IN
+%token LET TYPE GUARD IN
 %token IF THEN ELSE
 
 %token LBRACK RBRACK SEMICOLON
@@ -39,9 +39,17 @@ main:
 expr:
   | IF; cond = expr; THEN; if_b = expr; ELSE; else_b = expr { IfThenElse (cond, if_b, else_b) }
   | LET; id = ID; EQ; e = expr; IN; body = expr { LetinF (id, e, body) }
+  | TYPE; id = ID; EQ; cs = constructors; IN; body = expr { TypeF ((id, cs), body) }
   | e = lambda_expr { e }
   | e = app_expr { e }
   | e = primary_expr { e }
+;
+
+constructors:
+  | GUARD; id = ID; args = id_list; rest = constructors { (id, args) :: rest }
+  | GUARD; id = ID; args = id_list { [(id, args)] }
+  | GUARD; id = ID; rest = constructors { (id, []) :: rest }
+  | GUARD; id = ID { [(id, [])] }
 ;
 
 lambda_expr:

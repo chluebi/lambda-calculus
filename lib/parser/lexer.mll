@@ -17,6 +17,10 @@ rule read = parse
     { ARROW }
 | "let"
     { LET }
+| "type"
+    { TYPE }
+| '|'
+    { GUARD }
 | '='
     { EQ }
 | "in"

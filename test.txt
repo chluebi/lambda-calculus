@@ -1,1 +1,2 @@
-(27 / 3 - 8) = 1
+type abc = | cZ | cA | cB abc in
+nth 1 99 (nth 0 99 (nth 2 99 (cB cA)))
