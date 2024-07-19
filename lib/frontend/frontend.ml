@@ -7,6 +7,11 @@ module Frontend = struct
     | IntOpMult
     | IntOpDiv
     | IntOpExp
+    | CompOpLeq
+    | CompOpGeq
+    | CompOpLt
+    | CompOpGt
+    | CompOpEq
     | BoolOpAnd
     | BoolOpOr
 
@@ -17,6 +22,11 @@ module Frontend = struct
     | IntOpMult -> "*"
     | IntOpDiv -> "/"
     | IntOpExp -> " ^ "
+    | CompOpLeq -> " <= "
+    | CompOpGeq -> " >= "
+    | CompOpLt -> " < "
+    | CompOpGt -> " > "
+    | CompOpEq -> " = "
     | BoolOpAnd -> "&"
     | BoolOpOr -> "|"
 
@@ -27,6 +37,11 @@ module Frontend = struct
     | IntOpMult -> "mul"
     | IntOpDiv -> "div"
     | IntOpExp -> "exp"
+    | CompOpLeq -> "leq"
+    | CompOpGeq -> "geq"
+    | CompOpLt -> "lt"
+    | CompOpGt -> "gt"
+    | CompOpEq -> "eq"
     | BoolOpAnd -> "and"
     | BoolOpOr -> "or"
 
@@ -65,8 +80,9 @@ module Frontend = struct
         ^ to_string else_b
     | NumF n -> Int.to_string n
     | BinopF (binop, op1, op2) ->
-        to_string op1 ^ " " ^ binop_to_string binop ^ " " ^ to_string op2
-    | UnopF (unop, op) -> unop_to_string unop ^ to_string op
+        "(" ^ to_string op1 ^ " " ^ binop_to_string binop ^ " " ^ to_string op2
+        ^ ")"
+    | UnopF (unop, op) -> "(" ^ unop_to_string unop ^ to_string op ^ ")"
 
   let int_to_v (i : int) : V.t =
     let rec helper i =

@@ -1,8 +1,27 @@
 let zero = (\f x -> x) in
 let one = (\f x -> f x) in
+
 let succ = (\n f x -> f (n f x)) in
 let add = (\m n -> m succ n) in
 let mul = (\m n -> m (add n) zero) in
 let exp = (\m n -> n m) in
 let pred = (\n f x -> n (\g h -> h (g f)) (\u -> x) (\x -> x)) in
 let sub = (\m n -> n pred m) in
+
+let true = (\x y -> x) in
+let false = (\x y -> y) in
+let and = (\p q -> p q p) in
+let or = (\p q -> p p q) in
+let not = (\p -> p false true) in
+let ifthenelse = (\p a b -> p a b) in
+
+let iszero = (\n -> n (\x -> false) true) in
+let leq = (\m n -> iszero (sub m n)) in
+let geq = (\m n -> iszero (sub n m)) in
+let lt = (\m n -> not (geq m n)) in
+let gt = (\m n -> not (leq m n)) in
+let eq = (\m n -> and (leq m n) (geq m n)) in
+
+let Y = (\g -> (\x -> g (x x)) (\x -> g (x x))) in
+let divhelp = (\f n m -> if n >= m then (1 + (f (n - m) m)) else 0) in
+let div = Y divhelp in

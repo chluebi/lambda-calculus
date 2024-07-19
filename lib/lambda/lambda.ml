@@ -252,6 +252,13 @@ module FullReduction = struct
     | tree', true -> eval_eager tree'
     | tree', false -> tree'
 
+  let rec eval_eager_steps (tree : b) (steps : int) : b option =
+    if steps > 0 then
+      match eval_step_eager tree with
+      | tree', true -> eval_eager_steps tree' (steps - 1)
+      | tree', false -> Some tree'
+    else None
+
   let rec min_debruijn (tree : b) : int =
     Int.min
       (b_fold_with_context
@@ -288,4 +295,40 @@ module FullReduction = struct
           helper l (VarB i)
     in
     b_to_pure (norm (pure_to_b tree))
+
+  let full_reduction_steps (tree : L.t) (max_steps : int) : L.t =
+    let eval (tree : b) : v option =
+      match eval_eager_steps tree max_steps with
+      | Some res -> Some (b_to_v res)
+      | None -> None
+    in
+    let rec norm (tree : b) : b option =
+      match eval tree with
+      | Some res -> (
+          (* print_endline ("readback finished with " ^ b_to_string (readback res)); *)
+          match readback res with Some res -> Some res | None -> None)
+      | None -> None
+    and readback (tree : v) : b option =
+      (* print_endline ("readback of " ^ v_to_string tree); *)
+      match tree with
+      | LambV b -> (
+          (* print_endline ("min debruijn " ^ Int.to_string (min_debruijn b)); *)
+          let new_body = change_freeapp_indicies (-1) b in
+          let normed = norm (AppB (LambB new_body, FreeAppB (-1, []))) in
+          (* print_endline ("normed " ^ b_to_string normed); *)
+          match normed with
+          | Some res -> Some (LambB (change_indicies 1 res))
+          | None -> None)
+      | FreeAppV (i, l) ->
+          let rec helper (l : v list) (carry : b) : b option =
+            match l with
+            | [] -> Some carry
+            | x :: xs -> (
+                match readback x with
+                | Some res -> helper xs (AppB (carry, res))
+                | None -> None)
+          in
+          helper l (VarB i)
+    in
+    match norm (pure_to_b tree) with Some res -> b_to_pure res | None -> tree
 end

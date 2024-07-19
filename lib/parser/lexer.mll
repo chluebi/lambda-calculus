@@ -43,6 +43,14 @@ rule read = parse
     { OR }
 | '~'
     { NOT }
+| "<="
+    { LEQ }
+| ">="
+    { GEQ }
+| '<'
+    { LT }
+| '>'
+    { GT }
 | ['0'-'9']+ as x
     { INT (int_of_string x) }
 | ['a'-'z' 'A'-'Z' '_']['a'-'z' 'A'-'Z' '0'-'9' '_']* as x

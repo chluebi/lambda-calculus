@@ -6,18 +6,24 @@ open Frontend.Frontend
 %token <int> INT
 %token LPAREN RPAREN
 %token LAMBDA ARROW
-%token LET EQ IN
+%token LET IN
 %token IF THEN ELSE
 
-%token PLUS MINUS STAR DIV EXP
-
-%left PLUS
-%left STAR DIV
-%left EXP
-%nonassoc MINUS
+%token LEQ GEQ LT GT EQ
+%nonassoc EQ
 
 %token AND OR NOT
+%left OR
+%left AND
+%right NOT
+
+%token PLUS MINUS STAR DIV EXP
+%left PLUS MINUS
+%left STAR DIV
+%right EXP
+
 %token EOF
+
 %start main
 %type <t> main
 %type <t> expr
@@ -63,7 +69,7 @@ primary_expr:
   | e = lambda_expr { e }
 ;
 
-binop:
+%inline binop:
   | PLUS { IntOpPlus }
   | MINUS { IntOpMinus }
   | STAR { IntOpMult }
@@ -71,9 +77,13 @@ binop:
   | EXP { IntOpExp }
   | AND { BoolOpAnd }
   | OR { BoolOpOr }
+  | LEQ { CompOpLeq }
+  | GEQ { CompOpGeq }
+  | LT { CompOpLt }
+  | GT { CompOpGt }
+  | EQ { CompOpEq }
 ;
 
-unop:
-  | MINUS { IntOpNeg }
+%inline unop:
   | NOT { BoolOpNot }
 ;
