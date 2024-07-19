@@ -8,6 +8,7 @@ open Frontend.Frontend
 %token LAMBDA ARROW
 %token LET TYPE GUARD IN
 %token IF THEN ELSE
+%token MATCH COLON WITH END
 
 %token LBRACK RBRACK SEMICOLON
 
@@ -40,6 +41,7 @@ expr:
   | IF; cond = expr; THEN; if_b = expr; ELSE; else_b = expr { IfThenElse (cond, if_b, else_b) }
   | LET; id = ID; EQ; e = expr; IN; body = expr { LetinF (id, e, body) }
   | TYPE; id = ID; EQ; cs = constructors; IN; body = expr { TypeF ((id, cs), body) }
+  | MATCH; e = expr; COLON; t = ID; WITH; cs = cases; END { MatchF (e, t, cs)}
   | e = lambda_expr { e }
   | e = app_expr { e }
   | e = primary_expr { e }
@@ -50,6 +52,13 @@ constructors:
   | GUARD; id = ID; args = id_list { [(id, args)] }
   | GUARD; id = ID; rest = constructors { (id, []) :: rest }
   | GUARD; id = ID { [(id, [])] }
+;
+
+cases:
+  | GUARD; id = ID; args = id_list; ARROW; e = expr; rest = cases { (id, args, e) :: rest }
+  | GUARD; id = ID; args = id_list; ARROW; e = expr { [(id, args, e)] }
+  | GUARD; id = ID; ARROW; e = expr; rest = cases { (id, [], e) :: rest }
+  | GUARD; id = ID; ARROW; e = expr { [(id, [], e)] }
 ;
 
 lambda_expr:

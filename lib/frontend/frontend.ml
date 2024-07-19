@@ -64,6 +64,7 @@ module Frontend = struct
     | UnopF of unop * t
     | ListF of t list
     | TypeF of (string * (string * string list) list) * t
+    | MatchF of (t * string * (string * string list * t) list)
 
   let rec to_string (tree : t) : string =
     match tree with
@@ -89,13 +90,23 @@ module Frontend = struct
         List.fold_left (fun acc e -> acc ^ "; " ^ to_string e) "[" xs ^ "]"
     | TypeF ((name, constructors), body) ->
         let print_constructor (name, args) =
-          List.fold_left (fun acc e -> acc ^ e ^ " ") ("| " ^ name) args
+          List.fold_left (fun acc e -> acc ^ e ^ " ") ("| " ^ name ^ " ") args
         in
         List.fold_left
           (fun acc e -> acc ^ print_constructor e)
           ("type " ^ name ^ " = ")
           constructors
-        ^ to_string body
+        ^ " in " ^ to_string body
+    | MatchF (e, type_name, cases) ->
+        let print_case (name, args, body) =
+          List.fold_left (fun acc e -> acc ^ e ^ " ") (" | " ^ name ^ " ") args
+          ^ " -> " ^ to_string body
+        in
+        List.fold_left
+          (fun acc e -> acc ^ print_case e)
+          ("match " ^ to_string e ^ ": " ^ type_name)
+          cases
+        ^ " end"
 
   let int_to_v (i : int) : V.t =
     let rec helper i =
@@ -146,17 +157,112 @@ module Frontend = struct
               let constructor_f =
                 to_v ctxt
                   (LambF
-                     ( args,
+                     ( List.mapi (fun i _ -> Int.to_string i) args,
                        ListF
                          [
                            NumF type_index;
                            NumF constructor_index;
-                           ListF (List.map (fun x -> VarF x) args);
+                           ListF
+                             (List.mapi
+                                (fun i _ -> VarF (Int.to_string i))
+                                args);
                          ] ))
               in
               V.AppV (V.LambV (name, next_v), constructor_f)
         in
         constructors_to_v constructors []
+    | MatchF (e, type_name, cases) ->
+        let type_ctxt : type_context =
+          match List.assoc_opt type_name ctxt with
+          | None -> failwith ("could not find type " ^ type_name)
+          | Some x -> x
+        in
+        let rec cases_to_v (cases : (string * string list * t) list)
+            (remaining_constructors : type_context) : V.t =
+          match cases with
+          | [] -> failwith "empty cases"
+          | (name, args, body) :: cs -> (
+              let remaining_constructors, case_f, constructor_index =
+                if name = "_" then ([], body, -1)
+                else
+                  let constructor_name =
+                    match List.assoc_opt name remaining_constructors with
+                    | None -> (
+                        match List.assoc_opt name type_ctxt with
+                        | None -> failwith ("constructor " ^ name ^ " not found")
+                        | Some _ ->
+                            failwith
+                              ("redundant case for constructor " ^ name
+                             ^ " in match statement"))
+                    | Some constructor_args -> (
+                        match
+                          List.length constructor_args = List.length args
+                        with
+                        | false ->
+                            failwith
+                              ("constructor " ^ name ^ " has "
+                              ^ Int.to_string (List.length constructor_args)
+                              ^ " args, but "
+                              ^ Int.to_string (List.length args)
+                              ^ " were given")
+                        | true -> name)
+                  in
+                  let constructor_index =
+                    match
+                      List.find_index (fun (x, _) -> x = name) type_ctxt
+                    with
+                    | Some i -> i
+                    | None ->
+                        failwith
+                          ("Somehow failed to find constructor " ^ name
+                         ^ " when finding index")
+                  in
+                  let args_v = AppF (VarF "nth", [ NumF 2; NumF 0; e ]) in
+                  let case_f =
+                    AppF
+                      ( LambF (args, body),
+                        List.mapi
+                          (fun i _ ->
+                            AppF (VarF "nth", [ NumF i; NumF 0; args_v ]))
+                          args )
+                  in
+                  let remaining_constructors =
+                    List.remove_assoc constructor_name remaining_constructors
+                  in
+                  (remaining_constructors, case_f, constructor_index)
+              in
+              match cs with
+              | [] ->
+                  let _ =
+                    match remaining_constructors with
+                    | [] -> ()
+                    | (x, _) :: _ ->
+                        failwith
+                          ("in match statement for " ^ type_name
+                         ^ " case not covered: " ^ x)
+                  in
+                  to_v ctxt case_f
+              | cs ->
+                  let next_v = cases_to_v cs remaining_constructors in
+                  let _ =
+                    match name with
+                    | "_" -> failwith "empty placeholder far too late noticed!!"
+                    | _ -> ()
+                  in
+                  let type_index_v = AppF (VarF "nth", [ NumF 1; NumF 0; e ]) in
+                  V.AppV
+                    ( V.AppV
+                        ( V.AppV
+                            ( V.VarV "ifthenelse",
+                              to_v ctxt
+                                (BinopF
+                                   ( CompOpEq,
+                                     type_index_v,
+                                     NumF constructor_index )) ),
+                          to_v ctxt case_f ),
+                      next_v ))
+        in
+        cases_to_v cases type_ctxt
 
   let to_v = to_v []
 end

@@ -31,6 +31,14 @@ rule read = parse
     { THEN }
 | "else"
     { ELSE }
+| "match"
+    { MATCH }
+| ':'
+    { COLON }
+| "with"
+    { WITH }
+| "end"
+    { END }
 | "["
     { LBRACK }
 | "]"
