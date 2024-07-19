@@ -23,5 +23,15 @@ let gt = (\m n -> not (leq m n)) in
 let eq = (\m n -> and (leq m n) (geq m n)) in
 
 let Y = (\g -> (\x -> g (x x)) (\x -> g (x x))) in
-let divhelp = (\f n m -> if n >= m then (1 + (f (n - m) m)) else 0) in
-let div = Y divhelp in
+let div = Y (\f n m -> if n >= m then (1 + (f (n - m) m)) else 0) in
+let fact = Y (\f n -> if n = 0 then 1 else n * (f (n-1))) in
+
+let pair = (\x y f -> f x y) in
+let first = (\p -> p true) in
+let second = (\p -> p false) in
+
+let nil = (\x -> true) in
+let isnil = (\p -> p (\x y -> false)) in
+let cons = pair in
+let nth = Y (\f l i d -> if (isnil l) then d else (if (iszero i) then (first l) else (f (second l) (pred i) d))) in
+let map = Y (\f g l -> if (isnil l) then nil else cons (g (first l)) (f g (second l))) in
