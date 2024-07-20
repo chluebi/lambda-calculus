@@ -30,6 +30,13 @@ module L = struct
       (fun _ v -> Int.to_string v)
       tree
 
+  let to_type_string (tree : t) : string =
+    lambda_fold_with_context
+      (fun _ b -> "Lamb (" ^ b ^ ")")
+      (fun _ (f, a) -> "App (" ^ f ^ ") (" ^ a ^ ")")
+      (fun _ v -> "Var " ^ Int.to_string v)
+      tree
+
   let change_indicies (by : int) (tree : t) : t =
     lambda_fold_with_context
       (fun _ b -> Lamb b)
@@ -137,7 +144,11 @@ module V = struct
     visual_fold_with_context
       (fun _ (_, b) -> L.Lamb b)
       (fun _ (f, a) -> L.App (f, a))
-      (fun (_, map) v -> L.Var (StringMap.find v map))
+      (fun (_, map) v -> L.Var (
+        match StringMap.find_opt v map with
+          | Some s -> s
+          | None -> failwith ("could not find function " ^ v)
+        ))
       tree
 end
 
