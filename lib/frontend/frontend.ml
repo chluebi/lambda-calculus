@@ -217,13 +217,28 @@ module Frontend = struct
                           ("Somehow failed to find constructor " ^ name
                          ^ " when finding index")
                   in
-                  let args_v = AppF (VarF "nth", [ NumF 2; NumF 0; e ]) in
+                  let args_v =
+                    AppF
+                      ( VarF "first",
+                        [
+                          AppF (VarF "second", [ AppF (VarF "second", [ e ]) ]);
+                        ] )
+                  in
+                  let rec repeat f (i : int) x =
+                    match i with 0 -> x | _ -> repeat f (i - 1) (f x)
+                  in
                   let case_f =
                     AppF
                       ( LambF (args, body),
                         List.mapi
                           (fun i _ ->
-                            AppF (VarF "nth", [ NumF i; NumF 0; args_v ]))
+                            AppF
+                              ( VarF "first",
+                                [
+                                  repeat
+                                    (fun x -> AppF (VarF "second", [ x ]))
+                                    i args_v;
+                                ] ))
                           args )
                   in
                   let remaining_constructors =
@@ -249,7 +264,9 @@ module Frontend = struct
                     | "_" -> failwith "empty placeholder far too late noticed!!"
                     | _ -> ()
                   in
-                  let type_index_v = AppF (VarF "nth", [ NumF 1; NumF 0; e ]) in
+                  let type_index_v =
+                    AppF (VarF "first", [ AppF (VarF "second", [ e ]) ])
+                  in
                   V.AppV
                     ( V.AppV
                         ( V.AppV

@@ -28,17 +28,28 @@ Y (\f x y ->
     end
 )
 in
+let natfromint =
+(\n -> n S O)
+in
+let intfromnat =
+Y (\f n -> 
+    match n : nat with
+        | O -> 0
+        | S nn -> (f nn) + 1
+    end
+)
+in
 type tree = | Node tree tree | Leaf nat in
 let treesum =
 Y (\f t ->
     match t : tree with
-        | Node a b -> add (f a) (f b)
+        | Node a b -> addnat (f a) (f b)
         | Leaf x -> x
     end
 )
 in
-let sometree = Node (Leaf 15) (Leaf 0) in
-iszero ((treesum sometree) - 10)
+let sometree = Node (Node (Leaf (natfromint 3)) (Leaf (natfromint 4))) (Leaf (natfromint 5)) in
+intfromnat (subnat (treesum sometree) (natfromint 11))
 
 
 
