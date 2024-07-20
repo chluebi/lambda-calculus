@@ -19,7 +19,7 @@ let parse_and_lazy_evaluate lexbuf =
 
 let parse_and_full_reduction lexbuf =
   let value = parse_with_error lexbuf in
-  (print_endline (Frontend.to_string value));
+  print_endline (Frontend.to_string value);
   let v = Frontend.to_v value in
   let debruijn = V.to_debruijn v in
   print_string
@@ -32,20 +32,18 @@ let read_files filenames =
 let loop just_print just_lazy filenames () =
   let content = read_files filenames in
   let lexbuf = Lexing.from_string content in
-  if just_print then
-    parse_and_print lexbuf
-  else if just_lazy then
-    parse_and_lazy_evaluate lexbuf
-  else
-    parse_and_full_reduction lexbuf
+  if just_print then parse_and_print lexbuf
+  else if just_lazy then parse_and_lazy_evaluate lexbuf
+  else parse_and_full_reduction lexbuf
 
 let () =
   Command.basic_spec ~summary:"Parse and display Lambda calculus"
     Command.Spec.(
       empty
-      +> flag "-just-print" no_arg ~doc:" Just print (no evaluate, no full reduction)"
+      +> flag "-just-print" no_arg
+           ~doc:" Just print (no evaluate, no full reduction)"
       +> flag "-just-lazy" no_arg ~doc:" Just lazy evaluate (no full reduction)"
-      +> anon (sequence ("filename" %: string))
-    )
-    (fun just_print just_lazy filenames () -> loop just_print just_lazy filenames ())
+      +> anon (sequence ("filename" %: string)))
+    (fun just_print just_lazy filenames () ->
+      loop just_print just_lazy filenames ())
   |> Command_unix.run

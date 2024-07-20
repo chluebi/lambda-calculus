@@ -144,11 +144,11 @@ module V = struct
     visual_fold_with_context
       (fun _ (_, b) -> L.Lamb b)
       (fun _ (f, a) -> L.App (f, a))
-      (fun (_, map) v -> L.Var (
-        match StringMap.find_opt v map with
+      (fun (_, map) v ->
+        L.Var
+          (match StringMap.find_opt v map with
           | Some s -> s
-          | None -> failwith ("could not find function " ^ v)
-        ))
+          | None -> failwith ("could not find function " ^ v)))
       tree
 end
 
