@@ -77,10 +77,10 @@ module Frontend = struct
         ^ ")"
     | VarF id -> id
     | LetinF (id, e, body) ->
-        "let " ^ id ^ " = " ^ to_string e ^ " in " ^ to_string body
+        "let " ^ id ^ " = " ^ to_string e ^ " in\n" ^ to_string body
     | IfThenElse (cond, if_b, else_b) ->
-        "if " ^ to_string cond ^ " then " ^ to_string if_b ^ " else "
-        ^ to_string else_b
+        "if " ^ to_string cond ^ "\nthen " ^ to_string if_b ^ "\nelse "
+        ^ to_string else_b ^ "\n"
     | NumF n -> Int.to_string n
     | BinopF (binop, op1, op2) ->
         "(" ^ to_string op1 ^ " " ^ binop_to_string binop ^ " " ^ to_string op2
@@ -90,7 +90,7 @@ module Frontend = struct
         List.fold_left (fun acc e -> acc ^ "; " ^ to_string e) "[" xs ^ "]"
     | TypeF ((name, constructors), body) ->
         let print_constructor (name, args) =
-          List.fold_left (fun acc e -> acc ^ e ^ " ") ("| " ^ name ^ " ") args
+          List.fold_left (fun acc e -> acc ^ e ^ " ") ("\n| " ^ name ^ " ") args
         in
         List.fold_left
           (fun acc e -> acc ^ print_constructor e)
@@ -99,7 +99,7 @@ module Frontend = struct
         ^ " in " ^ to_string body
     | MatchF (e, type_name, cases) ->
         let print_case (name, args, body) =
-          List.fold_left (fun acc e -> acc ^ e ^ " ") (" | " ^ name ^ " ") args
+          List.fold_left (fun acc e -> acc ^ e ^ " ") ("\n| " ^ name ^ " ") args
           ^ " -> " ^ to_string body
         in
         List.fold_left
