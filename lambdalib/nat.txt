@@ -1,0 +1,41 @@
+type nat = | S nat | O in
+let iszeronat =
+(\x -> 
+    match x : nat with
+    | O -> true
+    | _ -> false
+    end
+)
+in
+let addnat =
+Y (\f x y -> 
+    match y : nat with
+        | O -> x
+        | S yy -> f (S x) yy
+    end
+)
+in
+let subnat =
+Y (\f x y ->
+    match y : nat with
+        | O -> x
+        | S yy -> (
+            match x : nat with
+                | O -> O
+                | S xx -> f xx yy
+            end
+        )
+    end
+)
+in
+let natfromint =
+(\n -> n S O)
+in
+let intfromnat =
+Y (\f n -> 
+    match n : nat with
+        | O -> 0
+        | S nn -> (f nn) + 1
+    end
+)
+in

@@ -1,0 +1,2 @@
+let lambda_one = Lamb (Lamb (App (Var 0) (Var 1)))
+in

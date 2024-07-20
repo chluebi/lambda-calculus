@@ -1,0 +1,2 @@
+let lambda_succzero_evaled = Lamb (Lamb (App (Var 0) (App (App (Lamb (Lamb (Var 3))) (Var 0)) (Var 1))))
+in

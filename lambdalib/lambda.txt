@@ -1,0 +1,114 @@
+type t = | Lamb t | App t t | Var int in
+let lambda_equal =
+Y (\rec x y ->
+match x : t with
+    | Lamb b -> (
+        match y : t with
+            | Lamb b2 -> rec b b2
+            | _ -> false
+        end
+    )
+    | App f a -> (
+        match y : t with
+            | App f2 a2 -> and (rec f f2) (rec a a2)
+            | _ -> false
+        end
+    )
+    | Var i -> (
+        match y : t with
+            | Var i2 -> i = i2
+            | _ -> false
+        end
+    )
+end
+) 
+in
+let lambda_fold =
+Y (\rec lamb_f app_f var_f tree ->
+    match tree : t with
+        | Lamb b -> lamb_f (rec lamb_f app_f var_f b)
+        | App f a -> app_f (rec lamb_f app_f var_f f) (rec lamb_f app_f var_f f)
+        | Var i -> var_f i
+    end
+)
+in
+let lambda_fold_with_context =
+Y (\rec lamb_f app_f var_f tree ->
+    let helper = Y (\rec ctxt tree -> 
+        match tree : t with
+            | Lamb b -> lamb_f ctxt (rec (ctxt + 1) b)
+            | App f a -> app_f ctxt (rec ctxt f) (rec ctxt f)
+            | Var i -> var_f ctxt i
+        end
+    )
+    in
+    helper 0 tree
+)
+in
+let change_indices =
+(\by tree ->
+lambda_fold (\x -> Lamb x) (\x y -> App x y) (\i -> Var (i + by)) tree
+)
+in
+let change_indices_minus =
+(\by tree ->
+lambda_fold (\x -> Lamb x) (\x y -> App x y) (\i -> Var (i - by)) tree
+)
+in
+let substitute =
+(\sub_index sub_expr tree ->
+    lambda_fold_with_context
+    (\_ x -> Lamb x)
+    (\_ x y -> App x y)
+    (\ctxt i -> if (sub_index = i) then (change_indices (ctxt + 1) sub_expr) else (Var i))
+    tree
+)
+in
+let eval_step_lazy =
+Y (\rec tree ->
+    match tree : t with
+        | Lamb _ -> pair tree false
+        | App f a -> (
+            let function_res = rec f in
+            let f = first function_res in
+            if (second function_res) then
+                pair (App f a) true
+            else
+                match f : t with
+                    | Lamb b -> pair (change_indices_minus 1 (substitute 0 a b)) true
+                    | _ -> Var (10)
+                end
+        )
+        | Var _ -> pair tree false
+    end
+)
+in
+let eval_lazy =
+Y (\rec tree ->
+let eval_result = eval_step_lazy tree in
+if second eval_result then
+    rec (first eval_result)
+else
+    (first eval_result)
+)
+in
+let lambda_id = Lamb (Var 0)
+in
+let lambda_idid = App lambda_id lambda_id
+in
+let lambda_id_in_a_box = Lamb (Lamb (Var 1))
+in
+let lambda_id_in_a_box_in_a_box = Lamb (Lamb (Lamb (Var 2)))
+in
+let lambda_put_in_a_box = Lamb (Lamb (Var 0))
+in
+let lambda_put_id_in_a_box = App lambda_put_in_a_box lambda_id
+in
+let lambda_zero = Lamb (Lamb (Var 1))
+in
+let lambda_one = Lamb (Lamb (App (Var 0) (Var 1)))
+in
+let lambda_succ = Lamb (Lamb (Lamb (App (Var 1) (App (App (Var 0) (Var 1)) (Var 2)))))
+in
+let lambda_zero_succ = App lambda_succ lambda_zero
+in
