@@ -1,0 +1,149 @@
+type b = | VarB int | LambB b | AppB b b | FreeAppB int vlist
+in
+type v = | LambV b | FreeAppV int vlist
+in
+let b_to_v =
+(\tree ->
+    match tree : b with
+        | LambB b -> LambV b
+        | FreeAppB i l -> FreeAppV i l
+        | _ -> VarB 10
+    end
+)
+in
+let v_to_b =
+(\tree ->
+    match tree : v with
+        | LambV b -> LambB b
+        | FreeAppV i l -> FreeAppB i l 
+    end
+)
+in
+let pure_to_b =
+(\tree ->
+    lambda_fold_with_context
+      (\_ b -> LambB b)
+      (\_ a f -> AppB a f)
+      (\_ i -> VarB i)
+      tree
+)
+in
+let b_to_pure =
+Y (\rec tree ->
+    match tree : b with
+        | LambB b -> Lamb (rec b)
+        | AppB f a -> App (rec f) (rec a)
+        | VarB i -> Var i
+        | _ -> Var 10
+    end
+)
+in
+let b_fold_with_context =
+Y (\rec lamb_f app_f var_f free_app_f tree ->
+    let helper = Y (\rec ctxt tree -> 
+        match tree : b with
+            | LambB b -> lamb_f ctxt (rec (ctxt + 1) b)
+            | AppB f a -> app_f ctxt (rec ctxt f) (rec ctxt f)
+            | VarB i -> var_f ctxt i
+            | FreeAppB i l -> free_app_f ctxt i l
+        end
+    )
+    in
+    helper 0 tree
+)
+in
+let b_change_indices =
+(\by tree ->
+    b_fold_with_context
+    (\_ b -> LambB b)
+    (\_ f a -> AppB f a)
+    (\_ i -> VarB (i + by))
+    (\_ i l -> FreeAppB i l)
+    tree
+)
+in
+let b_change_indices_minus =
+(\by tree ->
+    b_fold_with_context
+    (\_ b -> LambB b)
+    (\_ f a -> AppB f a)
+    (\_ i -> VarB (i - by))
+    (\_ i l -> FreeAppB i l)
+    tree
+)
+in
+let b_change_freeapp_indices =
+(\by tree ->
+    b_fold_with_context
+    (\_ b -> LambB b)
+    (\_ f a -> AppB f a)
+    (\_ i -> VarB i)
+    (\_ i l -> FreeAppB (i + by) l)
+    tree
+)
+in
+let b_change_freeapp_indices =
+(\by tree ->
+    b_fold_with_context
+    (\_ b -> LambB b)
+    (\_ f a -> AppB f a)
+    (\_ i -> VarB i)
+    (\_ i l -> FreeAppB (i - by) l)
+    tree
+)
+in
+let b_sub =
+(\sub_index sub_expr tree ->
+    b_fold_with_context
+    (\_ b -> LambB b)
+    (\_ f a -> AppB f a)
+    (\ctxt i ->
+        if sub_index = i then (change_indices (ctxt + 1) sub_expr) else (VarB i)
+    )
+    (\_ i l -> FreeAppB i l)
+    tree
+)
+in
+let eval_step_eager =
+Y (\rec tree ->
+    match tree : b with
+        | LambB _ -> pair tree false
+        | AppB f a -> (
+            let function_res = rec f in
+            let f = first function_res in
+            if (second function_res) then
+                pair (AppB f a) true
+            else (
+                let argument_res = rec a in
+                let a = first argument_res in
+                if (second argument_res) then
+                    pair (AppB f a) true
+                else (
+                    match f : b with
+                        | LambB b -> pair (b_change_indices_minus 1 (b_sub 0 a b)) true
+                        | FreeAppB i l -> (
+                            match a : b with
+                                | LambB b -> pair (FreeAppB i (append [(LambV b)] l)) true
+                                | FreeAppB i2 l2 -> pair (FreeAppB i (append (FreeAppB i2 l2) l)) true
+                                | _ -> pair (VarB 10) false
+                            end
+                        )
+                        | _ -> pair (VarB 10) false
+                    end
+                )
+            )
+        )
+        | VarB _ -> pair tree false
+        | FreeAppB _ _ -> pair tree false
+    end
+)
+in
+let eval_eager =
+Y (\rec tree ->
+let eval_result = eval_step_eager tree in
+if second eval_result then
+    rec (first eval_result)
+else
+    (first eval_result)
+)
+in

@@ -76,7 +76,7 @@ Y (\rec tree ->
             else
                 match f : t with
                     | Lamb b -> pair (change_indices_minus 1 (substitute 0 a b)) true
-                    | _ -> Var (10)
+                    | _ -> pair (Var 10) false
                 end
         )
         | Var _ -> pair tree false
@@ -91,6 +91,8 @@ if second eval_result then
 else
     (first eval_result)
 )
+in
+let lambda_true = Lamb (Lamb (Var 0))
 in
 let lambda_id = Lamb (Var 0)
 in

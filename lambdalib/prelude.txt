@@ -34,4 +34,5 @@ let nil = (\x -> true) in
 let isnil = (\p -> p (\x y -> false)) in
 let cons = pair in
 let nth = Y (\f i d l -> if (isnil l) then d else (if (iszero i) then (first l) else (f (pred i) d (second l)))) in
+let append = Y (\f to_append l -> if (isnil l) then to_append else (pair (first l) (f to_append (second l)))) in
 let map = Y (\f g l -> if (isnil l) then nil else cons (g (first l)) (f g (second l))) in
