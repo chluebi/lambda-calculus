@@ -23,6 +23,18 @@ match x : t with
 end
 ) 
 in
+let unquote = (\tree -> (
+    let unquote_helper =
+    Y (\rec ctxt tree ->
+    match tree : t with
+        | Lamb b -> (\x -> rec (append [(x)] ctxt) b)
+        | App f a -> (rec ctxt f) (rec ctxt a)
+        | Var i -> nth i (\x -> x) ctxt
+    end
+    )
+    in unquote_helper [] tree
+))
+in
 let lambda_fold =
 Y (\rec lamb_f app_f var_f tree ->
     match tree : t with
